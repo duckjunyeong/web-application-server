@@ -2,26 +2,22 @@ package webserver;
 
 import java.io.*;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
-
 import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.HttpRequestHandler;
-import util.HttpRequestReader;
-import util.PageHandler;
-import util.UrlQueryHandler;
+import util.*;
 
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
-    private static final String INDEX_PAGE = "/";
-    private static final String SIGNUP_PAGE = "/user/form.html";
-    private static final String CREATE_USER = "/user/create";
 
     private Socket connection;
+    private ResponseGenerator responseGenerator;
+    private HttpRequestHandler httpRequestHandler;
 
-    public RequestHandler(Socket connectionSocket) {
+    public RequestHandler(Socket connectionSocket) throws IOException {
         this.connection = connectionSocket;
+        this.responseGenerator = new ResponseGenerator(new DataOutputStream(connection.getOutputStream()));
+        this.httpRequestHandler = new HttpRequestHandler(connection.getInputStream());
     }
 
     public void run() {
@@ -29,42 +25,38 @@ public class RequestHandler extends Thread {
                 connection.getPort());
 
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
-            HttpRequestReader httpRequestReader = new HttpRequestReader(in);
-            HttpRequestHandler httpRequest = new HttpRequestHandler(httpRequestReader);
-            httpRequest.readHttpRequest();
+            httpRequestHandler.readHttpRequest();
 
-            log.debug("Client Http Request : {} ", httpRequest.getHttpRequest());
+            log.debug("Client Http Request : {} ", httpRequestHandler.getHttpRequest());
 
-            generateResponse(in, out, httpRequest);
+            takeResponse();
         } catch (IOException e) {
             log.error(e.getMessage());
         }
     }
 
-    private void generateResponse(InputStream in, OutputStream out, HttpRequestHandler httpRequest) throws IOException {
-        DataOutputStream dos = new DataOutputStream(out);
-        String requestMethod = httpRequest.getMethod();
-        String requestPath = httpRequest.getPath();
+    private void takeResponse() throws IOException {
+        String requestMethod = httpRequestHandler.getMethod();
+        String requestPath = httpRequestHandler.getPath();
 
         if (requestMethod.equals("GET")){
-            if (requestPath.equals(INDEX_PAGE)){
-                handleResponse(dos, PageHandler.getIndex());
+            if (requestPath.equals(ApiRoutes.INDEX_PAGE)){
+                responseGenerator.send200Response(PageHandler.getIndex());
                 return;
             }
-            else if (requestPath.equals(SIGNUP_PAGE)){
-                handleResponse(dos, PageHandler.getSignUp());
+            else if (requestPath.equals(ApiRoutes.SIGNUP_PAGE)){
+                responseGenerator.send200Response(PageHandler.getSignUp());
                 return;
             }
             else{
-                handleResponse(dos, PageHandler.getError());
+                responseGenerator.send200Response(PageHandler.getError());
                 return;
             }
         }
         else if (requestMethod.equals("POST")){
-            if (requestPath.startsWith(CREATE_USER)){
-                User user = generateUser(httpRequest);
-                //System.out.println("user Create! " + user.getName());
-                handleResponse(dos, PageHandler.getIndex());
+            if (requestPath.startsWith(ApiRoutes.CREATE_USER)){
+                User user = generateUser(httpRequestHandler);
+                responseGenerator.send302Response("/");
                 return;
             }
         }
@@ -78,30 +70,5 @@ public class RequestHandler extends Thread {
         String email = httpRequest.getQuery("email");
 
         return new User(userId, password, name, email);
-    }
-
-    private void handleResponse(DataOutputStream dos, byte[] bytes) {
-        response200Header(dos, bytes.length);
-        responseBody(dos, bytes);
-    }
-
-    private void response200Header(DataOutputStream dos, int lengthOfBodyContent) {
-        try {
-            dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
-            dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
-            dos.writeBytes("\r\n");
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-    }
-
-    private void responseBody(DataOutputStream dos, byte[] body) {
-        try {
-            dos.write(body, 0, body.length);
-            dos.flush();
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
     }
 }

@@ -7,13 +7,13 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 public class HttpRequestReader {
-  private String httpRequest;
+  private String[] request;
   private QueryHandler queryHandler;
   private InputStream inputStream;
 
   public HttpRequestReader(InputStream inputStream){
     this.inputStream = inputStream;
-    httpRequest = null;
+    request = null;
   }
 
   public void readHttpRequest() throws IOException {
@@ -35,7 +35,7 @@ public class HttpRequestReader {
         contentLength = Integer.parseInt(line.substring(15).trim());
       }
     }
-    this.httpRequest =  stringBuilder.toString();
+    this.request =  (stringBuilder.toString()).split("\r\n");
     return contentLength;
   }
 
@@ -47,8 +47,8 @@ public class HttpRequestReader {
     }
   }
 
-  public String getHttpRequest() {
-    return httpRequest;
+  public String[] getHttpRequest() {
+    return request;
   }
 
   public String getQuery(String key){

@@ -1,40 +1,39 @@
 package util;
 
+import java.io.InputStream;
+
 public class HttpRequestHandler {
   private HttpRequestReader httpRequestReader;
-  private String[] httpRequestArrayed;
 
-  public HttpRequestHandler(HttpRequestReader httpRequestReader){
-    this.httpRequestReader = httpRequestReader;
-    this.httpRequestArrayed = null;
+  public HttpRequestHandler(InputStream in){
+    this.httpRequestReader = new HttpRequestReader(in);
   }
 
   public void readHttpRequest(){
     try{
       httpRequestReader.readHttpRequest();
-      httpRequestArrayed = httpRequestReader.getHttpRequest().split("\\n");
     }
     catch (Exception e){
       throw new IllegalArgumentException("Invalid Http request");
     }
   }
 
-  public String getHttpRequest(){
+  public String[] getHttpRequest(){
     return httpRequestReader.getHttpRequest();
   }
 
   public String getLine(int lineNumber){
-    return httpRequestArrayed[lineNumber];
+    return httpRequestReader.getHttpRequest()[lineNumber];
   }
 
   public String getMethod(){
     isValidHttpRequestArrayed();
-    return httpRequestArrayed[0].split(" ")[0];
+    return  httpRequestReader.getHttpRequest()[0].split(" ")[0];
   }
 
   public String getPath(){
     isValidHttpRequestArrayed();
-    return httpRequestArrayed[0].split(" ")[1];
+    return  httpRequestReader.getHttpRequest()[0].split(" ")[1];
   }
 
   public String getQuery(String key){
@@ -42,6 +41,6 @@ public class HttpRequestHandler {
   }
 
   private void isValidHttpRequestArrayed() {
-    if (httpRequestArrayed == null) throw new IllegalArgumentException("httpRequestArrayed is null");
+    if ( httpRequestReader.getHttpRequest() == null) throw new IllegalArgumentException("httpRequestArrayed is null");
   }
 }

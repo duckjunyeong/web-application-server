@@ -1,5 +1,7 @@
 package model;
 
+import util.HttpRequestHandler;
+
 public class User {
     private String userId;
     private String password;
