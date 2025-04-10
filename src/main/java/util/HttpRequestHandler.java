@@ -37,6 +37,10 @@ public class HttpRequestHandler {
     return httpRequestArrayed[0].split(" ")[1];
   }
 
+  public String getQuery(String key){
+    return httpRequestReader.getQuery(key);
+  }
+
   private void isValidHttpRequestArrayed() {
     if (httpRequestArrayed == null) throw new IllegalArgumentException("httpRequestArrayed is null");
   }

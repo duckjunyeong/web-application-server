@@ -2,17 +2,21 @@ package webserver;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
+import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.HttpRequestHandler;
 import util.HttpRequestReader;
 import util.PageHandler;
+import util.UrlQueryHandler;
 
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
-    private static final String STATIC_FORDLER = "webapp/";
     private static final String INDEX_PAGE = "/";
+    private static final String SIGNUP_PAGE = "/user/form.html";
+    private static final String CREATE_USER = "/user/create";
 
     private Socket connection;
 
@@ -31,28 +35,49 @@ public class RequestHandler extends Thread {
 
             log.debug("Client Http Request : {} ", httpRequest.getHttpRequest());
 
-            String requestMethod = httpRequest.getMethod();
-            String requestPath = httpRequest.getPath();
-
-            generateResponse(out, requestMethod, requestPath);
+            generateResponse(in, out, httpRequest);
         } catch (IOException e) {
             log.error(e.getMessage());
         }
     }
 
-    private void generateResponse(OutputStream out, String requestMethod, String requestPath) throws IOException {
+    private void generateResponse(InputStream in, OutputStream out, HttpRequestHandler httpRequest) throws IOException {
         DataOutputStream dos = new DataOutputStream(out);
+        String requestMethod = httpRequest.getMethod();
+        String requestPath = httpRequest.getPath();
+
         if (requestMethod.equals("GET")){
             if (requestPath.equals(INDEX_PAGE)){
-                handleResponse(dos, PageHandler.getIndexPage());
+                handleResponse(dos, PageHandler.getIndex());
+                return;
+            }
+            else if (requestPath.equals(SIGNUP_PAGE)){
+                handleResponse(dos, PageHandler.getSignUp());
                 return;
             }
             else{
-                handleResponse(dos, PageHandler.getErrorPage());
+                handleResponse(dos, PageHandler.getError());
+                return;
+            }
+        }
+        else if (requestMethod.equals("POST")){
+            if (requestPath.startsWith(CREATE_USER)){
+                User user = generateUser(httpRequest);
+                //System.out.println("user Create! " + user.getName());
+                handleResponse(dos, PageHandler.getIndex());
                 return;
             }
         }
         throw new IllegalArgumentException("Invalid Path");
+    }
+
+    private User generateUser(HttpRequestHandler httpRequest) {
+        String name = httpRequest.getQuery("name");
+        String userId = httpRequest.getQuery("userId");
+        String password = httpRequest.getQuery("password");
+        String email = httpRequest.getQuery("email");
+
+        return new User(userId, password, name, email);
     }
 
     private void handleResponse(DataOutputStream dos, byte[] bytes) {
