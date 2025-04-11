@@ -56,8 +56,8 @@ public class ResponseGenerator {
     dos.writeBytes("HTTP/1.1 301 ok \r\n");
     dos.writeBytes("Location: " + DOMAIN_ROUTE + redirect + "\r\n");
     dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
-    dos.writeBytes("Set-Cookie: session_id=" + user.getUserId() + "; Path=/; Max-Age=15\r\n");
-    dos.writeBytes("Set-Cookie: logined=true; Path=/; Max-Age=15\r\n");
+    dos.writeBytes("Set-Cookie: session_id=" + user.getUserId() + "; Path=/; Max-Age=30\r\n");
+    dos.writeBytes("Set-Cookie: logined=true; Path=/; Max-Age=30\r\n");
     dos.writeBytes("\r\n");
   }
 

@@ -56,6 +56,17 @@ public class RequestHandler extends Thread {
                 responseGenerator.sendPageResponse(PageHandler.getSignUp());
                 return;
             }
+            else if (requestPath.equals(ApiRoutes.LIST_PAGE)){
+                String isLogined = httpRequestHandler.getCookie("logined");
+                String userId = httpRequestHandler.getCookie("session_id");
+                User user = DataBase.findUserById(userId);
+                if (isLogined != null && user != null && isLogined.equals("true")){
+                    responseGenerator.sendPageResponse(PageHandler.getList(user));
+                    return;
+                }
+                responseGenerator.sendRedirectResponse("/");
+                return;
+            }
             else{
                 responseGenerator.sendPageResponse(PageHandler.getError());
                 return;

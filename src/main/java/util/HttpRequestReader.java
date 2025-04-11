@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
+
 public class HttpRequestReader {
   private String[] request;
   private QueryHandler queryHandler;
@@ -37,7 +38,7 @@ public class HttpRequestReader {
         contentLength = Integer.parseInt(line.substring(15).trim());
       }
       else if(line.startsWith("Cookie")){
-        cookieHandler = new CookieHandler(line.substring(7).trim());
+        cookieHandler = new CookieHandler(line.substring(7).replace(" ", ""));
       }
     }
     this.request =  (stringBuilder.toString()).split("\r\n");
