@@ -2,6 +2,8 @@ package webserver;
 
 import java.io.*;
 import java.net.Socket;
+
+import db.DataBase;
 import model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,8 +29,10 @@ public class RequestHandler extends Thread {
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
             httpRequestHandler.readHttpRequest();
 
-            log.debug("Client Http Request : {} ", httpRequestHandler.getHttpRequest());
-
+            log.debug("Client Http Request");
+            for (String request : httpRequestHandler.getHttpRequest()){
+                System.out.println(request);
+            }
             takeResponse();
         } catch (IOException e) {
             log.error(e.getMessage());
@@ -41,34 +45,50 @@ public class RequestHandler extends Thread {
 
         if (requestMethod.equals("GET")){
             if (requestPath.equals(ApiRoutes.INDEX_PAGE)){
-                responseGenerator.send200Response(PageHandler.getIndex());
+                responseGenerator.sendPageResponse(PageHandler.getIndex());
+                return;
+            }
+            else if (requestPath.equals(ApiRoutes.LOGIN_PAGE)){
+                responseGenerator.sendPageResponse(PageHandler.getLogin());
                 return;
             }
             else if (requestPath.equals(ApiRoutes.SIGNUP_PAGE)){
-                responseGenerator.send200Response(PageHandler.getSignUp());
+                responseGenerator.sendPageResponse(PageHandler.getSignUp());
                 return;
             }
             else{
-                responseGenerator.send200Response(PageHandler.getError());
+                responseGenerator.sendPageResponse(PageHandler.getError());
                 return;
             }
         }
         else if (requestMethod.equals("POST")){
-            if (requestPath.startsWith(ApiRoutes.CREATE_USER)){
-                User user = generateUser(httpRequestHandler);
-                responseGenerator.send302Response("/");
+            if (requestPath.startsWith(ApiRoutes.POST_CREATE)){
+                generateUser(httpRequestHandler);
+                responseGenerator.sendRedirectResponse("/");
+                return;
+            }
+            else if (requestPath.equals(ApiRoutes.POST_LOGIN)){
+                String userId = httpRequestHandler.getQuery("userId");
+                String password = httpRequestHandler.getQuery("password");
+
+                User user = DataBase.findUserById(userId);
+                if (user == null || !user.getPassword().equals(password)) {
+                    responseGenerator.failedLoginResponse(PageHandler.getFailedLogin());
+                    return;
+                }
+                responseGenerator.successLoginResponse("/", user);
                 return;
             }
         }
         throw new IllegalArgumentException("Invalid Path");
     }
 
-    private User generateUser(HttpRequestHandler httpRequest) {
+    private void generateUser(HttpRequestHandler httpRequest) {
         String name = httpRequest.getQuery("name");
         String userId = httpRequest.getQuery("userId");
         String password = httpRequest.getQuery("password");
         String email = httpRequest.getQuery("email");
 
-        return new User(userId, password, name, email);
+        DataBase.addUser(new User(userId, password, name, email));
     }
 }

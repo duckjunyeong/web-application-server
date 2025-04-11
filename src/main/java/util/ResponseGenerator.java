@@ -1,5 +1,7 @@
 package util;
 
+import model.User;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 
@@ -11,13 +13,24 @@ public class ResponseGenerator {
     this.dos = dos;
   }
 
-  public void send200Response(byte[] bytes) throws IOException {
+  public void sendPageResponse(byte[] bytes) throws IOException {
     response200Header(bytes.length);
     responseBody(bytes);
   }
 
-  public void send302Response(String redirect) throws IOException {
+  public void sendRedirectResponse(String redirect) throws IOException {
     response302Header(redirect);
+  }
+
+  public void successLoginResponse(String redirect, User user) throws IOException {
+    successLoginResponseHeader(redirect, user);
+    responseUserInfo(user);
+
+  }
+
+  public void failedLoginResponse(byte[] bytes) throws IOException {
+    failedLoginResponseHeader(bytes);
+    responseBody(bytes);
   }
 
   private void response200Header(int lengthOfBodyContent) throws IOException {
@@ -39,5 +52,31 @@ public class ResponseGenerator {
       dos.flush();
   }
 
+  public void successLoginResponseHeader(String redirect, User user) throws IOException {
+    dos.writeBytes("HTTP/1.1 301 ok \r\n");
+    dos.writeBytes("Location: " + DOMAIN_ROUTE + redirect + "\r\n");
+    dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
+    dos.writeBytes("Set-Cookie: session_id=" + user.getUserId() + "; Path=/; Max-Age=15\r\n");
+    dos.writeBytes("Set-Cookie: logined=true; Path=/; Max-Age=15\r\n");
+    dos.writeBytes("\r\n");
+  }
 
+  public void failedLoginResponseHeader(byte[] bytes) throws IOException {
+    dos.writeBytes("HTTP/1.1 301 ok \r\n");
+    dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
+    dos.writeBytes("Set-Cookie: logined=false; Path=/; Max-Age=15\r\n");
+    dos.writeBytes("\r\n");
+  }
+
+  private void responseUserInfo(User user) throws IOException {
+    StringBuilder stringBuilder = new StringBuilder();
+    stringBuilder.append("userInfo: ");
+    stringBuilder.append("userId: ").append(user.getUserId());
+    stringBuilder.append("name: ").append(user.getName());
+    stringBuilder.append("email: ").append(user.getEmail());
+
+    byte[] userInfo = stringBuilder.toString().getBytes();
+    dos.write(userInfo, 0, userInfo.length);
+    dos.flush();
+  }
 }

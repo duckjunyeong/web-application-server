@@ -9,10 +9,12 @@ import java.nio.charset.StandardCharsets;
 public class HttpRequestReader {
   private String[] request;
   private QueryHandler queryHandler;
+  private CookieHandler cookieHandler;
   private InputStream inputStream;
 
   public HttpRequestReader(InputStream inputStream){
     this.inputStream = inputStream;
+    this.cookieHandler = null;
     request = null;
   }
 
@@ -34,6 +36,9 @@ public class HttpRequestReader {
       if (line.startsWith("Content-Length")){
         contentLength = Integer.parseInt(line.substring(15).trim());
       }
+      else if(line.startsWith("Cookie")){
+        cookieHandler = new CookieHandler(line.substring(7).trim());
+      }
     }
     this.request =  (stringBuilder.toString()).split("\r\n");
     return contentLength;
@@ -53,5 +58,10 @@ public class HttpRequestReader {
 
   public String getQuery(String key){
     return queryHandler.getQuery(key);
+  }
+
+  public String getCookie(String key) {
+    if (cookieHandler == null) return null;
+    return cookieHandler.getCookie(key);
   }
 }

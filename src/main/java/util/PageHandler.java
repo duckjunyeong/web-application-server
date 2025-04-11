@@ -10,14 +10,25 @@ public class PageHandler {
 
   public static byte[] getIndex() throws IOException {
     Path path = Paths.get(STATIC_FORDLER + "index.html");
-    if (Files.exists(path)){
-      return Files.readAllBytes(path);
-    }
-    throw new IllegalArgumentException("Invalid file");
+    return translateToBytes(path);
   }
 
   public static byte[] getSignUp() throws IOException {
     Path path = Paths.get(STATIC_FORDLER + "/user/form.html");
+    return translateToBytes(path);
+  }
+
+  public static byte[] getLogin() throws IOException {
+    Path path = Paths.get(STATIC_FORDLER + "/user/login.html");
+    return translateToBytes(path);
+  }
+
+  public static byte[] getFailedLogin() throws IOException {
+    Path path = Paths.get(STATIC_FORDLER + "/user/login_failed.html");
+    return translateToBytes(path);
+  }
+
+  private static byte[] translateToBytes(Path path) throws IOException {
     if (Files.exists(path)){
       return Files.readAllBytes(path);
     }

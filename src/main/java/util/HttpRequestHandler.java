@@ -43,4 +43,8 @@ public class HttpRequestHandler {
   private void isValidHttpRequestArrayed() {
     if ( httpRequestReader.getHttpRequest() == null) throw new IllegalArgumentException("httpRequestArrayed is null");
   }
+
+  public String getCookie(String key) {
+    return httpRequestReader.getCookie(key);
+  }
 }
