@@ -45,6 +45,16 @@ public class PageHandler {
     return htmlToString.getBytes();
   }
 
+  public static byte[] getBootStrapCssFile() throws IOException {
+    Path path = Paths.get(STATIC_FORDLER + "/css/bootstrap.min.css");
+    return translateToBytes(path);
+  }
+
+  public static byte[] getStyledCssFile() throws IOException {
+    Path path = Paths.get(STATIC_FORDLER + "/css/styles.css");
+    return translateToBytes(path);
+  }
+
   public static byte[] getError(){
     return "Hello World".getBytes();
   }

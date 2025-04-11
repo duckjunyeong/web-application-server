@@ -18,6 +18,18 @@ public class ResponseGenerator {
     responseBody(bytes);
   }
 
+  public void sendCssFileResponse(byte[] bytes) throws IOException {
+    response200CssHeader(bytes.length);
+    responseBody(bytes);
+  }
+
+  private void response200CssHeader(int lengthOfBodyContent) throws IOException {
+    dos.writeBytes("HTTP/1.1 200 OK \r\n");
+    dos.writeBytes("Content-Type: text/css;charset=utf-8\r\n");
+    dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+    dos.writeBytes("\r\n");
+  }
+
   public void sendRedirectResponse(String redirect) throws IOException {
     response302Header(redirect);
   }

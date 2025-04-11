@@ -67,6 +67,14 @@ public class RequestHandler extends Thread {
                 responseGenerator.sendRedirectResponse("/");
                 return;
             }
+            else if (requestPath.equals(ApiRoutes.BOOTSTRAPCSSFILE)){
+                responseGenerator.sendCssFileResponse(PageHandler.getBootStrapCssFile());
+                return;
+            }
+            else if (requestPath.equals(ApiRoutes.STYLEDCSSFILE)){
+                responseGenerator.sendCssFileResponse(PageHandler.getStyledCssFile());
+                return;
+            }
             else{
                 responseGenerator.sendPageResponse(PageHandler.getError());
                 return;

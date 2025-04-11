@@ -8,4 +8,7 @@ public class ApiRoutes {
   public static final String POST_CREATE = "/user/create";
   public static final String POST_LOGIN = "/user/login";
   public static final String LIST_PAGE = "/user/list.html";
+  public static final String CSSFILE = "/css";
+  public static final String BOOTSTRAPCSSFILE = "/css/bootstrap.min.css";
+  public static final String STYLEDCSSFILE = "/css/styles.css";
 }
