@@ -1,5 +1,8 @@
 package util;
 
+import util.parser.HttpBodyParser;
+import util.parser.HttpHeaderParser;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,61 +11,37 @@ import java.nio.charset.StandardCharsets;
 
 
 public class HttpRequestReader {
-  private String[] request;
-  private QueryHandler queryHandler;
-  private CookieHandler cookieHandler;
+  private HttpHeaderParser httpHeaderParser;
+  private HttpBodyParser httpBodyParser;
   private InputStream inputStream;
 
   public HttpRequestReader(InputStream inputStream){
     this.inputStream = inputStream;
-    this.cookieHandler = null;
-    request = null;
+    this.httpHeaderParser = new HttpHeaderParser();
+    this.httpBodyParser = new HttpBodyParser();
   }
 
   public void readHttpRequest() throws IOException {
     InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
     BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
 
-    int contentLength = readRequestHeader(bufferedReader);
-    readQueryString(contentLength, bufferedReader);
-  }
+    httpHeaderParser.parseHeader(bufferedReader);
 
-  private int readRequestHeader(BufferedReader bufferedReader) throws IOException {
-    StringBuilder stringBuilder = new StringBuilder();
-
-    String line;
-    int contentLength = 0;
-    while ((line = bufferedReader.readLine()) != null && !line.isEmpty()){
-      stringBuilder.append(line).append("\r\n");
-      if (line.startsWith("Content-Length")){
-        contentLength = Integer.parseInt(line.substring(15).trim());
-      }
-      else if(line.startsWith("Cookie")){
-        cookieHandler = new CookieHandler(line.substring(7).replace(" ", ""));
-      }
-    }
-    this.request =  (stringBuilder.toString()).split("\r\n");
-    return contentLength;
-  }
-
-  private void readQueryString(int contentLength, BufferedReader bufferedReader) throws IOException {
-    if (contentLength > 0){
-      char[] queryData = new char[contentLength];
-      bufferedReader.read(queryData, 0, contentLength);
-      this.queryHandler = new QueryHandler(new String(queryData));
+    String contentLength = httpHeaderParser.getHeader("Content-Length");
+    if (contentLength != null){
+      httpBodyParser.parseBody(bufferedReader, Integer.parseInt(contentLength));
     }
   }
 
-  public String[] getHttpRequest() {
-    return request;
+  public String getHttpHeader(String key) {
+    return httpHeaderParser.getHeader(key);
   }
 
-  public String getQuery(String key){
-    return queryHandler.getQuery(key);
+  public String getHttpBody(String key){
+    return httpBodyParser.getBody(key);
   }
 
-  public String getCookie(String key) {
-    if (cookieHandler == null) return null;
-    return cookieHandler.getCookie(key);
+  public String getAllHttpRequest() {
+      return httpHeaderParser.getAllHeaderRequest() + httpBodyParser.getAllBodyRequest();
   }
 }

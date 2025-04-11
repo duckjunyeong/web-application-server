@@ -1,7 +1,5 @@
 package model;
 
-import util.HttpRequestHandler;
-
 import java.util.HashMap;
 import java.util.Map;
 
